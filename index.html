@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Editor de textos (esquina inferior izquierda)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      body { @apply bg-gray-900 text-gray-100; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+  <div class="flex flex-col lg:flex-row gap-4 p-4 lg:p-6 min-h-screen">
+    <div class="flex-1 flex flex-col gap-3">
+      <input id="file" type="file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-200">
+      <canvas id="canvas" class="w-full h-auto bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg"></canvas>
+    </div>
+
+    <div class="w-full lg:w-80 space-y-4 max-h-screen lg:overflow-y-auto">
+      <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-lg shadow-sm">
+        <h2 class="text-lg font-semibold mb-3">Textos</h2>
+        
+        <div class="space-y-2">
+          <textarea id="lines" class="w-full h-32 p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">Latitud: 5.939341
+Longitud: -77.303472
+Elevación: 49.37 m
+Precisión: 1.0 m
+Tiempo: 26-12-2025 09:30</textarea>
+          <p class="text-xs text-gray-600 dark:text-gray-400">Cada línea se dibuja en orden. Edita, añade o elimina líneas.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Fuente</label>
+            <select id="fontFamily" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+              <option value="Arial, Helvetica, sans-serif" selected>Arial</option>
+              <option value="system-ui, sans-serif">Sistema</option>
+              <option value="Roboto Mono, monospace">Monospace</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Tamaño</label>
+            <input id="fontSize" type="number" min="10" max="64" step="1" value="17" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Color texto</label>
+            <input id="textColor" type="color" value="#000000" class="w-full h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Fondo</label>
+            <input id="bgColor" type="color" value="#ffffff" class="w-full h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Opacidad</label>
+            <input id="bgAlpha" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Sombra</label>
+            <select id="shadow" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+              <option value="0">Sin sombra</option>
+              <option value="1" selected>Suave</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Padding</label>
+            <input id="padding" type="number" min="0" max="64" step="1" value="8" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Margen</label>
+            <input id="margin" type="number" min="0" max="64" step="1" value="10" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+        </div>
+
+        <h3 class="text-sm font-semibold mt-4 mb-2">Tamaño del recuadro</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Ancho</label>
+            <input id="boxWidth" type="number" min="50" max="800" step="1" value="255" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Alto</label>
+            <input id="boxHeight" type="number" min="50" max="600" step="1" value="118" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+        </div>
+        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">0 = auto ajustable</p>
+
+        <h3 class="text-sm font-semibold mt-4 mb-2">Mover recuadro</h3>
+        <div class="grid grid-cols-3 gap-2">
+          <button></button>
+          <button id="up" class="py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded font-semibold">↑</button>
+          <button></button>
+          <button id="left" class="py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded font-semibold">←</button>
+          <button id="center" class="py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white rounded font-semibold">⊙</button>
+          <button id="right" class="py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded font-semibold">→</button>
+          <button></button>
+          <button id="down" class="py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded font-semibold">↓</button>
+          <button></button>
+        </div>
+        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Pasos: 5px</p>
+
+        <div class="grid grid-cols-2 gap-3 mt-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">Pos X</label>
+            <input id="posX" type="number" value="5" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Pos Y</label>
+            <input id="posY" type="number" value="600" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button id="reset" class="py-2 px-4 bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white rounded font-medium text-sm">Reset</button>
+          <button id="download" class="py-2 px-4 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white rounded font-medium text-sm">Descargar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const linesEl = document.getElementById('lines');
+    const fontFamilyEl = document.getElementById('fontFamily');
+    const fontSizeEl = document.getElementById('fontSize');
+    const textColorEl = document.getElementById('textColor');
+    const bgColorEl = document.getElementById('bgColor');
+    const bgAlphaEl = document.getElementById('bgAlpha');
+    const shadowEl = document.getElementById('shadow');
+    const paddingEl = document.getElementById('padding');
+    const marginEl = document.getElementById('margin');
+    const boxWidthEl = document.getElementById('boxWidth');
+    const boxHeightEl = document.getElementById('boxHeight');
+    const posXEl = document.getElementById('posX');
+    const posYEl = document.getElementById('posY');
+    const downloadBtn = document.getElementById('download');
+    const resetBtn = document.getElementById('reset');
+
+    const img = new Image();
+    let viewW = 1280, viewH = 720;
+
+    function loadSettings() {
+      const saved = localStorage.getItem('editorSettings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        linesEl.value = settings.lines || linesEl.value;
+        fontSizeEl.value = settings.fontSize || 24;
+        fontFamilyEl.value = settings.fontFamily || 'system-ui, sans-serif';
+        textColorEl.value = settings.textColor || '#000000';
+        bgColorEl.value = settings.bgColor || '#ffffff';
+        bgAlphaEl.value = settings.bgAlpha || 0.85;
+        shadowEl.value = settings.shadow || '1';
+        paddingEl.value = settings.padding || 8;
+        marginEl.value = settings.margin || 10;
+        boxWidthEl.value = settings.boxWidth || 0;
+        boxHeightEl.value = settings.boxHeight || 0;
+        posXEl.value = settings.posX || 10;
+        posYEl.value = settings.posY || 10;
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem('editorSettings', JSON.stringify({
+        lines: linesEl.value,
+        fontSize: fontSizeEl.value,
+        fontFamily: fontFamilyEl.value,
+        textColor: textColorEl.value,
+        bgColor: bgColorEl.value,
+        bgAlpha: bgAlphaEl.value,
+        shadow: shadowEl.value,
+        padding: paddingEl.value,
+        margin: marginEl.value,
+        boxWidth: boxWidthEl.value,
+        boxHeight: boxHeightEl.value,
+        posX: posXEl.value,
+        posY: posYEl.value,
+      }));
+    }
+
+    function hexToRgb(hex) {
+      const h = hex.replace('#','');
+      const bigint = parseInt(h.length === 3 ? h.split('').map(c=>c+c).join('') : h, 16);
+      return { r: (bigint>>16)&255, g: (bigint>>8)&255, b: bigint&255 };
+    }
+
+    function fitCanvasToImage() {
+      const dpr = window.devicePixelRatio || 1;
+      viewW = img.naturalWidth || viewW;
+      viewH = img.naturalHeight || viewH;
+      canvas.width = viewW * dpr;
+      canvas.height = viewH * dpr;
+      canvas.style.width = viewW + 'px';
+      canvas.style.height = viewH + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, viewW, viewH);
+      ctx.fillStyle = '#eee';
+      ctx.fillRect(0, 0, viewW, viewH);
+
+      if (img.src) ctx.drawImage(img, 0, 0, viewW, viewH);
+
+      const lines = linesEl.value.split('\n').filter(l => l.trim().length > 0);
+      const fontSize = Number(fontSizeEl.value);
+      const fontFamily = fontFamilyEl.value;
+      const padding = Number(paddingEl.value);
+      const textColor = textColorEl.value;
+      const bgRgb = hexToRgb(bgColorEl.value);
+      const bgAlpha = Number(bgAlphaEl.value);
+      const customBoxW = Number(boxWidthEl.value) || 0;
+      const customBoxH = Number(boxHeightEl.value) || 0;
+      const posX = Number(posXEl.value);
+      const posY = Number(posYEl.value);
+
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.textBaseline = 'top';
+
+      let maxW = 0;
+      for (const line of lines) {
+        maxW = Math.max(maxW, ctx.measureText(line).width);
+      }
+      const lineH = Math.round(fontSize * 1.35);
+      const boxW = customBoxW > 0 ? customBoxW : Math.ceil(maxW + padding * 2);
+      const boxH = customBoxH > 0 ? customBoxH : Math.ceil(lineH * lines.length + padding * 2);
+
+      const x = posX;
+      const y = posY;
+
+      ctx.fillStyle = `rgba(${bgRgb.r},${bgRgb.g},${bgRgb.b},${bgAlpha})`;
+      ctx.fillRect(x, y, boxW, boxH);
+
+      if (shadowEl.value === '1') {
+        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+      } else {
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
+
+      ctx.fillStyle = textColor;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, x + padding, y + padding + i * lineH);
+      });
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    }
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      img.onload = () => { fitCanvasToImage(); draw(); };
+      img.src = URL.createObjectURL(file);
+    });
+
+    [linesEl, fontFamilyEl, fontSizeEl, textColorEl, bgColorEl, bgAlphaEl, shadowEl, paddingEl, 
+     boxWidthEl, boxHeightEl, posXEl, posYEl]
+      .forEach(el => {
+        el.addEventListener('input', () => { draw(); saveSettings(); });
+      });
+
+    document.getElementById('up').addEventListener('click', () => {
+      posYEl.value = Number(posYEl.value) - 5;
+      draw(); saveSettings();
+    });
+    document.getElementById('down').addEventListener('click', () => {
+      posYEl.value = Number(posYEl.value) + 5;
+      draw(); saveSettings();
+    });
+    document.getElementById('left').addEventListener('click', () => {
+      posXEl.value = Number(posXEl.value) - 5;
+      draw(); saveSettings();
+    });
+    document.getElementById('right').addEventListener('click', () => {
+      posXEl.value = Number(posXEl.value) + 5;
+      draw(); saveSettings();
+    });
+    document.getElementById('center').addEventListener('click', () => {
+      posXEl.value = 10;
+      posYEl.value = viewH - 150;
+      draw(); saveSettings();
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      // Crear canvas temporal con ruido
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+
+      // Copiar canvas actual
+      tempCtx.drawImage(canvas, 0, 0);
+
+      // Aplicar ruido al área del recuadro de texto
+      const customBoxW = Number(boxWidthEl.value) || 0;
+      const customBoxH = Number(boxHeightEl.value) || 0;
+      const posX = Number(posXEl.value);
+      const posY = Number(posYEl.value);
+      const fontSize = Number(fontSizeEl.value);
+      const lines = linesEl.value.split('\n').filter(l => l.trim().length > 0);
+      const lineH = Math.round(fontSize * 1.35);
+      const padding = Number(paddingEl.value);
+
+      tempCtx.font = `${fontSize}px ${fontFamilyEl.value}`;
+      let maxW = 0;
+      for (const line of lines) {
+        maxW = Math.max(maxW, tempCtx.measureText(line).width);
+      }
+      
+      const boxW = customBoxW > 0 ? customBoxW : Math.ceil(maxW + padding * 2);
+      const boxH = customBoxH > 0 ? customBoxH : Math.ceil(lineH * lines.length + padding * 2);
+
+      // Agregar ruido aleatorio
+      const imageData = tempCtx.getImageData(posX, posY, boxW, boxH);
+      const data = imageData.data;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 30;
+        data[i] += noise;     // R
+        data[i + 1] += noise; // G
+        data[i + 2] += noise; // B
+      }
+      
+      tempCtx.putImageData(imageData, posX, posY);
+
+      // Descargar con nombre personalizado
+      tempCanvas.toBlob((blob) => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const filename = `${year}${hours}${minutes}.png`;
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }, 'image/png');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      linesEl.value = `Latitud: 5.939341
+Longitud: -77.303472
+Elevación: 49.37 m
+Precisión: 1.0 m
+Tiempo: 26-12-2025 09:30`;
+      fontFamilyEl.value = 'Arial, Helvetica, sans-serif';
+      fontSizeEl.value = 17;
+      textColorEl.value = '#000000';
+      bgColorEl.value = '#ffffff';
+      bgAlphaEl.value = 0.85;
+      shadowEl.value = '1';
+      paddingEl.value = 8;
+      marginEl.value = 10;
+      boxWidthEl.value = 255;
+      boxHeightEl.value = 118;
+      posXEl.value = 5;
+      posYEl.value = 600;
+      draw();
+      saveSettings();
+    });
+
+    loadSettings();
+    fitCanvasToImage();
+    draw();
+  </script>
+</body>
+</html>
