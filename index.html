@@ -152,8 +152,14 @@ Tiempo: 26-12-2025 09:30</textarea>
     const img = new Image();
     let viewW = 1280, viewH = 720;
 
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
     function loadSettings() {
       const saved = localStorage.getItem('editorSettings');
+      const isMobileDevice = isMobile();
+      
       if (saved) {
         const settings = JSON.parse(saved);
         linesEl.value = settings.lines || linesEl.value;
@@ -165,10 +171,17 @@ Tiempo: 26-12-2025 09:30</textarea>
         shadowEl.value = settings.shadow || '1';
         paddingEl.value = settings.padding || 8;
         marginEl.value = settings.margin || 10;
-        boxWidthEl.value = settings.boxWidth || 0;
-        boxHeightEl.value = settings.boxHeight || 0;
-        posXEl.value = settings.posX || 10;
-        posYEl.value = settings.posY || 10;
+        boxWidthEl.value = settings.boxWidth || (isMobileDevice ? 320 : 0);
+        boxHeightEl.value = settings.boxHeight || (isMobileDevice ? 170 : 0);
+        posXEl.value = settings.posX || (isMobileDevice ? 5 : 10);
+        posYEl.value = settings.posY || (isMobileDevice ? 725 : 10);
+      } else {
+        if (isMobileDevice) {
+          boxWidthEl.value = 320;
+          boxHeightEl.value = 170;
+          posXEl.value = 5;
+          posYEl.value = 725;
+        }
       }
     }
 
@@ -219,8 +232,15 @@ Tiempo: 26-12-2025 09:30</textarea>
       const fontFamily = fontFamilyEl.value;
       const padding = Number(paddingEl.value);
       const textColor = textColorEl.value;
-      const bgRgb = hexToRgb(bgColorEl.value);
       const bgAlpha = Number(bgAlphaEl.value);
+      let bgColor = bgColorEl.value;
+      
+      // Si opacidad es 100%, forzar fondo blanco opaco
+      if (bgAlpha === 1) {
+        bgColor = '#ffffff';
+      }
+      
+      const bgRgb = hexToRgb(bgColor);
       const customBoxW = Number(boxWidthEl.value) || 0;
       const customBoxH = Number(boxHeightEl.value) || 0;
       const posX = Number(posXEl.value);
@@ -360,6 +380,7 @@ Tiempo: 26-12-2025 09:30</textarea>
     });
 
     resetBtn.addEventListener('click', () => {
+      const isMobileDevice = isMobile();
       linesEl.value = `Latitud: 5.939341
 Longitud: -77.303472
 Elevación: 49.37 m
@@ -373,10 +394,10 @@ Tiempo: 26-12-2025 09:30`;
       shadowEl.value = '1';
       paddingEl.value = 8;
       marginEl.value = 10;
-      boxWidthEl.value = 255;
-      boxHeightEl.value = 118;
-      posXEl.value = 5;
-      posYEl.value = 600;
+      boxWidthEl.value = isMobileDevice ? 320 : 255;
+      boxHeightEl.value = isMobileDevice ? 170 : 118;
+      posXEl.value = isMobileDevice ? 5 : 5;
+      posYEl.value = isMobileDevice ? 725 : 600;
       draw();
       saveSettings();
     });
